@@ -20,7 +20,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/slugbus/slugger"
+	"github.com/slugbus/taps"
 
 	"github.com/spf13/cobra"
 )
@@ -52,8 +52,8 @@ func Main(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Set the custom url for slugger to hit
-	slugger.OverrideURL(f.url)
+	// Set the custom url for taps to hit
+	taps.OverrideURL(f.url)
 
 	// If a number was specified, ping the server n times.
 	if cmd.Flags().Changed("number") {
@@ -74,7 +74,7 @@ func pingDuration(duration, interval time.Duration) {
 
 	// Run this part of the code in a goroutine.
 	go func() {
-		buses, err := slugger.Query()
+		buses, err := taps.Query()
 		if err != nil {
 			logrus.Error(err)
 		} else {
@@ -92,7 +92,7 @@ func pingDuration(duration, interval time.Duration) {
 
 		for range time.Tick(interval) {
 			// Query
-			buses, err := slugger.Query()
+			buses, err := taps.Query()
 			if err != nil {
 				logrus.Error(err)
 				continue
@@ -122,7 +122,7 @@ func pingNTimes(n uint64, interval time.Duration) {
 	count := uint64(0)
 	for range time.Tick(interval) {
 		// Query
-		buses, err := slugger.Query()
+		buses, err := taps.Query()
 		if err != nil {
 			logrus.Error(err)
 			continue
