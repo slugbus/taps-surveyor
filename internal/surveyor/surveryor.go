@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/slugbus/taps/v2"
 
-	"github.com/slugbus/taps"
+	"github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
@@ -53,28 +53,28 @@ func Main(cmd *cobra.Command, args []string) error {
 	}
 
 	// Set the custom url for taps to hit
-	taps.OverrideURL(f.url)
+	s := taps.NewSource(f.url)
 
 	// If a number was specified, ping the server n times.
 	if cmd.Flags().Changed("number") {
-		pingNTimes(f.number, f.interval)
+		pingNTimes(s, f.number, f.interval)
 		return nil
 	}
 
 	// Otherwise do the duration approach.
-	pingDuration(f.duration, f.interval)
+	pingDuration(s, f.duration, f.interval)
 
 	return nil
 }
 
-func pingDuration(duration, interval time.Duration) {
+func pingDuration(s taps.Source, duration, interval time.Duration) {
 	fmt.Println("[")
 	// Keep track of the number of times we've pinged.
 	count := uint64(0)
 
 	// Run this part of the code in a goroutine.
 	go func() {
-		buses, err := taps.Query()
+		buses, err := s.Query()
 		if err != nil {
 			logrus.Error(err)
 		} else {
@@ -92,7 +92,7 @@ func pingDuration(duration, interval time.Duration) {
 
 		for range time.Tick(interval) {
 			// Query
-			buses, err := taps.Query()
+			buses, err := s.Query()
 			if err != nil {
 				logrus.Error(err)
 				continue
@@ -116,13 +116,13 @@ func pingDuration(duration, interval time.Duration) {
 	fmt.Println("]")
 }
 
-func pingNTimes(n uint64, interval time.Duration) {
+func pingNTimes(s taps.Source, n uint64, interval time.Duration) {
 	fmt.Println("[")
 	// Keep track of the number of times we've pinged.
 	count := uint64(0)
 	for range time.Tick(interval) {
 		// Query
-		buses, err := taps.Query()
+		buses, err := s.Query()
 		if err != nil {
 			logrus.Error(err)
 			continue
